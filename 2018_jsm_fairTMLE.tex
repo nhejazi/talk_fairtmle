@@ -1,0 +1,560 @@
+\documentclass[12pt,t]{beamer}
+\usepackage{graphicx}
+\setbeameroption{hide notes}
+\setbeamertemplate{note page}[plain]
+\usepackage{listings}
+\usepackage{datetime}
+\usepackage{url}
+
+% specifications for presenter mode
+%\beamerdefaultoverlayspecification{<+->}
+%\setbeamercovered{transparent}
+
+% math shorthand
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{float}
+\usepackage{bbm}
+\usepackage{bm}
+\usepackage{mathtools}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\X}{\mathcal{X}}
+\newcommand{\lik}{\mathcal{L}}
+\DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
+  #1\;\delimsize\|\;#2%
+}
+\newcommand{\infdiv}{D\infdivx}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\newcommand{\openr}{\hbox{${\rm I\kern-.2em R}$}}
+
+% Bibliography
+\usepackage{natbib}
+\bibpunct{(}{)}{,}{a}{}{;}
+\usepackage{bibentry}
+\nobibliography*
+
+\input{header.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% end of header
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% title info
+\title{Fairness with Constrained Paths}
+\subtitle{\scriptsize for the seminar: \textit{Fairness in Machine Learning},\\
+                      organized by M.~Hardt, Fall 2017, UC Berkeley,\\
+                      given \today}
+\author{\href{http://nimahejazi.org}{Nima Hejazi}
+       \\[-10pt]
+       }
+\institute{Group in Biostatistics \\
+           %Center for Computational Biology \\
+           %Berkeley Institute for Data Science \\
+           University of California, Berkeley \\
+           \href{https://www.stat.berkeley.edu/~nhejazi}
+             {\tt \scriptsize \color{foreground}
+               stat.berkeley.edu/\textasciitilde{}nhejazi
+             }
+           \\[4pt]
+           \includegraphics[height=20mm]{Figs/seal-berkeley.png}
+           \\[-12pt]
+          }
+\date{
+  \href{http://nimahejazi.org}
+      {\tt \scriptsize \color{foreground} nimahejazi.org}
+  \\[-4pt]
+  \href{https://twitter.com/nshejazi}
+      {\tt \scriptsize \color{foreground} twitter/@nshejazi}
+  \\[-4pt]
+  \href{https://github.com/nhejazi}
+      {\tt \scriptsize \color{foreground} github/nhejazi}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+% title slide
+{
+\setbeamertemplate{footline}{} % no page number here
+\frame{
+  \titlepage
+
+  \vspace{-1em}
+
+  \centerline{\href{https://goo.gl/qc7JPH}{\tt \scriptsize
+      \underline{slides}: goo.gl/qc7JPH}}
+  \vspace{-1.5em}
+  \vfill \hfill \includegraphics[height=6mm]{Figs/cc-zero.png} \vspace*{-0.5cm}
+
+  \note{This slide deck is for a short presentation on the final project
+    undertaken for ``Fairness in Machine Learning,'' a special topics seminar
+    organized by Moritz Hardt in the Fall 2017 term at UC Berkeley.
+
+    Slides: {\tt https://goo.gl/xZ5qPa} \\
+    With notes: {\tt https://goo.gl/qc7JPH}
+}
+}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[c]{Preview: Summary}
+\only<1>{\addtocounter{framenumber}{-1}}
+
+\begin{center}
+\begin{itemize}
+  \itemsep12pt
+  \item Targeted Learning provides a framework for estimating complex parameters
+    in nonparametric (infinite-dimensional) statistical models.
+  \item Constraints may be imposed as functionals defined over the target
+    parameter of interest.
+  \item Estimating constrained parameters may be seen as iteratively minimizing
+    a loss function along a \textit{constrained} path in the parameter space
+    $\Psi$.
+  \item Optimal nonparametric estimates of parameters (and constituent parts
+    thereof) may be obtained with Super Learning (i.e., stacked regression,
+    ensemble models).
+\end{itemize}
+\end{center}
+
+\note{We'll go over this summary again at the end of the talk. Hopefully, it
+  will all make more sense then.
+}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[fragile,c]{Why Nonparametrics?}
+
+\begin{center}
+\begin{minipage}[c]{10.7cm}
+\begin{semiverbatim}
+\lstset{basicstyle=\normalsize}
+\begin{lstlisting}[linewidth=10.7cm]
+  Everyone believes in the normal law
+  of errors, the experimenters because
+  they think it is a mathematical theorem,
+  the mathematicians because they think
+  it is an experimental fact.
+
+  -Henri Poincaré
+\end{lstlisting}
+\end{semiverbatim}
+\end{minipage}
+\end{center}
+
+\note{Obviously, it's important to explain the motivating example here.}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[c]{Background, Data, Notation}
+
+\begin{center}
+\begin{itemize}
+  \itemsep12pt
+  \item Data: $O = (W, X, Y)$, where $W$ is baseline covariates (e.g., sex,
+    height), $X$ is a sensitive characteristic, $Y$ an outcome of interest.
+  \item Consider $n$ i.i.d.~copies $O_1, \dots, O_n$ of $O \sim P_0 \in
+    \mathcal{M}$.
+  \item Here, $\mathcal{M}$ is an infinite-dimensional statistical model (i.e.,
+    indexed by an infinite-dimensional vector).
+  \item We discuss the estimation of a target parameter $\psi : \mathcal{M}
+    \rightarrow \psi(\mathcal{M})$.
+  \item $$ \Psi(P) = \argmin_{\psi \in \Psi} \E_PL(\psi)$$
+\end{itemize}
+\end{center}
+
+\note{
+  This is just the setup and all stuff that's been done already. We just need to
+  see this to get a feel for what's going to be happening with the derivation of
+  constraint-specific paths.
+}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[c]{Constrained Functional Parameters I}
+
+\begin{center}
+\begin{itemize}
+  \itemsep12pt
+  \item Consider estimating $\Psi(P) = \E_P(Y \mid W, X)$ from $O = (W, X, Y)
+    \sim \mathcal{M}$, with loss $L_Y(\psi) = -(Y \cdot \text{log}(P(Y \mid X,
+    W)) + (1 - Y) \cdot \text{log}(1 - P(Y \mid X, W)))$.
+  \item Let $\Theta_{\psi}(P): \mathcal{M} \rightarrow \openr$ be a parameter
+    for each $\psi \in \Psi$. Further, let $\Theta_{\psi}(P)$ be pathwise
+    differentiable.
+  \item e.g., \textit{equalized odds}: $\Theta_{\psi}(P_0) = \sum_y
+    \{\E_{P_0}(L(\psi)(O) \mid X = 1, Y = y) - \E_{P_0}(L(\psi)(O) \mid X = 0,
+    Y = y)\}^2$
+  \item $$ \Psi(P) = \argmin_{\psi \in \Psi, \Theta_{\psi}(P) = 0} \E_PL(\psi)$$
+\end{itemize}
+\end{center}
+
+\note{
+}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[c]{Constrained Functional Parameters II}
+
+\begin{center}
+\begin{itemize}
+  \itemsep12pt
+  \item We wish to estimate $\Psi^*(P)$, the projection of $\Psi(P)$ onto the
+    subspace $\Psi^*(P) = \{\psi \in \Psi: \Theta_{\psi}(P) = 0\}$
+    w.r.t.~loss-based dissimilarity: $d_{P}(\psi, \Psi(P)) = \E_PL(\psi) -
+    \E_PL(\Psi(P))$.
+  \item $$ \Psi^*(P) = \argmin_{\psi \in \Psi, \Theta_{\psi}(P) = 0} d_{P}(\psi,
+    \Psi(P))$$
+\end{itemize}
+
+\begin{equation}\label{lagrangedef}
+  (\Psi^*, \lambda) = (\Psi^*(P), \Lambda(P)) \equiv \argmin_{\psi \in \Psi,
+    \lambda} \E_PL(\psi) + \lambda \Theta_{\psi}(P),
+\end{equation}
+
+\begin{itemize}
+  \item \textit{Lemma}: If $\widetilde{\Psi}(P) = (\Psi^*(P), \Lambda(P))$ is
+    the minimizer of the Lagrange multiplier penalized loss (\ref{lagrangedef}),
+    then it readily follows that $\Psi^*(P) = \argmin_{\psi \in {\bf \Psi},
+      \Theta_{\psi}(P) = 0} \E_{P}L(\psi)$.
+\end{itemize}
+
+\end{center}
+
+\note{
+}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[c]{Intuition for Super Learner I}
+
+\begin{center}
+\begin{itemize}
+  \itemsep12pt
+  \item For a random variable $O = (W,X,Y)$, let the oracle selector be a rule
+    that picks the algorithm with the lowest cross-validated risk under the true
+    probability distribution $P_0$.
+  \item Asymptotic results prove that in realistic scenarios (where none of the
+    algorithms represent the true relationship), the ``discrete Super Learner''
+    performs asymptotically as well as the oracle selector (given the algorithms
+    in the collection). 
+\end{itemize}
+\end{center}
+
+\note{
+}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[c]{Intuition for Super Learner II}
+
+\vspace*{3mm}
+
+\centering
+
+\includegraphics[scale=0.4]{Figs/SL.pdf}
+
+\note{
+}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[c]{Super Learner for Constrained Parameters I}
+
+\begin{center}
+\begin{itemize}
+  \itemsep12pt
+  \item Consider the risk function for $\widetilde{\psi} = (\psi^*, \lambda)$
+    --- i.e., $R(\tilde{\psi} \mid P) \equiv PL(\psi^*) + \lambda \Theta(\psi^*
+    \mid P)$.
+  \item $$\E(\Psi^*(P), \Lambda(P)) = \argmin_{(\psi, \lambda) \in \Psi
+      \times \openr_{\geq 0}}R(\psi, \lambda \mid P)$$
+  \item For a given estimator $\widetilde{\psi}(P_n) = (\hat{\Psi}^*(P_n),
+    \hat{\lambda}(P_n))$ of $\widetilde{\Psi}(P_0)$, and a cross-validation
+    scheme defined by a distribution of $B_n \in \{0, 1\}^n$ that splits the
+    sample.
+  \item We can define a conditional risk as follows:
+    $$R_0(\widetilde{\psi}, P_n) = \E_{B_n} P_0L(\hat{\Psi}^*(P_{n, B_n}^0)) +
+      \hat{\Lambda}(P_n) \E_{B_n} \Theta(\hat{\Psi}^*(P_{n, B_n}^0) \mid P_0)$$
+\end{itemize}
+\end{center}
+
+\note{
+  \begin{itemize}
+    \item Here $P_{n, B_n}^0$ denotes the empirical distribution of the training
+      sample.
+  \end{itemize}
+}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[c]{Super Learner for Constrained Parameters II}
+
+\begin{center}
+\begin{equation}
+\begin{split}
+  R_{n, CV}(\tilde{\psi}, P_n) = E_{B_n}P_{n, B_n}^1L(\hat{\Psi}^*(P_{n,
+    B_n}^0)) \\ + \hat{\Lambda}(P_n) E_{B_n} \Theta(\hat{\Psi}^*(P_{n, B_n}^0)
+    \mid P_{n, B_n}^*)
+\end{split}
+\end{equation}
+\begin{itemize}
+  \itemsep12pt
+  \item Given a set of candidate estimators $\widetilde{\psi}_j(P_n) =
+    (\hat{\Psi}_j^*(P_n), \hat{\Lambda}_j(P_n))$, $j = 1, \ldots, J$, the
+    cross-validation selector is given by: $J_n = \argmin_j R_{n,
+      CV}(\widetilde{\psi}_j, P_n)$
+  \item A Super Learner may be defined over a set of candidate nonparametric
+    regression functions (i.e., machine learning algorithms).
+  \item Here, we may define a Super Learner of $\widetilde{\Psi}$ by
+    $\widetilde{\psi}_n \equiv \widetilde{\psi}_{J_n}(P_n) =
+    (\hat{\Psi}_{J_n}(P_n), \hat{\lambda}_{J_n}(P_n))$
+\end{itemize}
+\end{center}
+
+\note{
+}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[c]{Mappings with Constrained Super Learners}
+
+\begin{center}
+A straightforward approach to generating estimators of the constrained parameter
+would be to simply generate a mapping according to the following simple process:
+
+\vspace*{1em}
+
+\begin{enumerate}
+  \itemsep12pt
+  \item Generate an unconstrained Super Learner $\psi_n$ of the unconstrained
+    parameter $\psi_0$,
+  \item Map an estimator $\Theta_{\psi_n, n}$ of the constraint
+    $\Theta_{\psi_n}(P_0)$ into the path $\psi_{n, \lambda}$ mentioned above.
+    The corresponding solution $\psi_n^* = \psi_{n, \lambda_n}$ of
+    $\Theta_{\psi_{n, \lambda_n}, n}= 0$ generates an estimator of the
+    constrained parameter.
+\end{enumerate}
+\end{center}
+
+\note{
+}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[c]{Constraint-specific Paths I}
+
+\begin{center}
+
+Let $P_0 \in \mathcal{M}$ be the true distribution of the data $O = (W, X, Y)$,
+contained in an infinite-dimensional statistical model $\mathcal{M}$.
+
+\vspace{1em}
+
+Consider the solution $\psi_{0, \lambda} = \argmax_{\psi \in \Psi}
+\E_{P_0}L(\psi) + \lambda \Theta_0(\psi)$, noting that $\{\psi_{0, \lambda} :
+\lambda\}$ represents a path in the parameter space $\Psi$ through $\psi_0$ at
+$\lambda = 0$, which we refer to as the \textit{constraint-specific path}.
+
+\vspace{1em}
+
+We then leverage this construction to map an initial estimator of the
+unconstrained parameter $\psi_0$ into its corresponding constrained version
+$\psi_0^*$.
+\end{center}
+
+\note{
+}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[c]{Constraint-specific Paths II}
+
+\begin{center}
+\underline{The fine print}:
+
+\scriptsize{
+\begin{theorem}
+Let $\{\psi_{\delta, H}: \delta \}$ be a one-dimensional path through $\psi$ at
+$\delta = 0$ with direction $H \in {\bf H}(\psi)$, where $H$ varies over a set
+of directions $\mathcal{H}$. Let $H(\psi)$ be a Hilbert space with inner product
+$\langle f, g \rangle$.
+
+\vspace{1em}
+
+Let $T(\psi) \subset H(\psi)$ be the closure of the linear span of ${\cal H}$.
+Let $D_{0, L}(\psi) \in T(\psi)$ be the canonical gradient of the pathwise
+derivative $\left . \frac{d}{d \delta} \E_{P_0}L(\psi_{\delta, H}) \right
+|_{\delta = 0} = \langle D_{0, L}(\psi), H \rangle$. Let $D_{0, \Theta}(\psi)
+\in T(\psi)$ be the canonical gradient of the pathwise derivative $\left .
+ \frac{d}{d \delta}\Theta_0(\psi_{\delta, H}) \right |_{\delta = 0} =
+ \langle D_{0, \Theta}(\psi), H \rangle$. Let
+$\psi_{0, \lambda} = \argmin_{\psi \in {\bf \Psi}} \E_{P_0}L(\psi) + \lambda
+\Theta_0(\psi)$. Suppose that $\psi_{0, \lambda}$ solves its score equations
+$\left . \frac{d}{d \delta} \E_{P_0}L(\psi_{0, \lambda, \delta, H}) \right
+|_{\delta = 0}$ for all paths. Then, we have
+\begin{equation}\label{lfmpathconditiona}
+0 = D_L(\psi_{0, \lambda}) + \lambda D_{0, \Theta}(\psi_{0, \lambda}).
+\end{equation}
+
+$\dots$\\
+
+This now uniquely defines the solution $\psi_{0, \lambda}$ and an algorithm for
+computing it, given above. Finally, letting $\psi_0^* = \argmin_{\psi \in {\bf
+\Psi}, \Theta_0(\psi) = 0} \E_{P_0}L(\psi)$, we have $\psi_0^* = \psi_{0,
+ \lambda_0}$, where $\lambda_0$ is such that $\Theta_0(\psi_{0, \lambda}) = 0$.
+\end{theorem}
+}
+
+\end{center}
+
+\note{
+}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[c]{Future Work}
+
+\begin{center}
+\begin{itemize}
+  \itemsep12pt
+  \item Further generalization of constraint-specific paths: the solution path
+    $\{\psi_{0, \lambda}: \lambda\}$ in the parameter space $\Psi$ through
+    $\psi_0$ at $\lambda = 0$.
+  \item Further develop relation between constraint-specific paths and universal
+    least favorable submodels (Efron's least favorable families).
+  \item Integration of the approach of constraint-specific paths with classical
+    classical targeted maximum likelihood estimation --- in particular, what, if
+    any, are the implications for inference?
+  \item Try our approach out with practical constraint-type problems (e.g.,
+    fairness via equalized odds, physician knowledge in prediction).
+\end{itemize}
+\end{center}
+
+\note{
+}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[c]{Review: Summary}
+
+\begin{center}
+\begin{itemize}
+  \itemsep12pt
+  \item Targeted Learning provides a framework for estimating complex parameters
+    in nonparametric (infinite-dimensional) statistical models.
+  \item Constraints may be imposed as functionals defined over the target
+    parameter of interest.
+  \item Estimating constrained parameters may be seen as iteratively minimizing
+    a loss function along a \textit{constrained} path in the parameter space
+    $\Psi$.
+  \item Optimal nonparametric estimates of parameters (and constituent parts
+    thereof) may be obtained with Super Learning (i.e., stacked regression,
+    ensemble models).
+\end{itemize}
+\end{center}
+
+\note{It's always good to include a summary.}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% don't want dimming with references
+%\setbeamercovered{}
+%\beamerdefaultoverlayspecification{}
+
+\begin{frame}[c,allowframebreaks]{References}
+
+\bibliographystyle{apalike}
+\nocite{*}
+\bibliography{references}
+
+%\note{Here's some work we've talked about. Go check these out if interested.}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Acknowledgments}
+
+\vspace{18pt}
+
+\begin{tabular}{@{}l@{\hspace{1.5cm}}l@{}}
+Mark J.~van der Laan & \footnotesize \lolit University of California, Berkeley
+\end{tabular}
+
+\vspace{10mm}
+
+\underline{Funding source}:\\
+National Library of Medicine (of NIH): T32LM012417
+
+\note{
+}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[c]{Thank you.}
+
+\Large
+Slides: \href{https://goo.gl/1bGsgE}{goo.gl/xZ5qPa} \quad
+\includegraphics[height=5mm]{Figs/cc-zero.png}
+
+\vspace{3mm}
+Notes: \href{https://goo.gl/ic1FpG}{goo.gl/qc7JPH}
+
+\vspace{3mm}
+\href{https://www.stat.berkeley.edu/~nhejazi}{\tt
+  stat.berkeley.edu/\textasciitilde{}nhejazi}
+
+\vspace{3mm}
+\href{http://nimahejazi.org}{\tt nimahejazi.org}
+
+\vspace{3mm}
+\href{https://twitter.com/nshejazi}{\tt twitter/@nshejazi}
+
+\vspace{3mm}
+\href{https://github.com/nhejazi}{\tt github/nhejazi}
+
+\note{Here's where you can find me, as well as the slides for this talk.}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
+
