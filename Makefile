@@ -12,7 +12,8 @@ $(TITLE).pdf: $(TITLE).tex header.tex
 notes: $(TITLE)_withnotes.pdf
 
 clean:
-	rm -f *.{aux,log,nav,out,snm,toc,vrb,bbl,blg}
+	rm -f $(addprefix $(TITLE),.aux .bbl .blg .log .vrb .out .nav .snm .toc)
+	rm -f $(addprefix $(TITLE)_withnotes,.aux .bbl .blg .log .vrb .out .nav .snm .toc)
 
 $(TITLE)_withnotes.pdf: $(TITLE)_withnotes.tex header.tex
 	xelatex $(TITLE)_withnotes
