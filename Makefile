@@ -1,4 +1,4 @@
-TITLE = 2018_jsm_fairTMLE
+TITLE = 2018_jsm_fairtmle
 
 .PHONY : $(TITLE).pdf
 all: $(TITLE).pdf notes clean
