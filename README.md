@@ -6,9 +6,9 @@
 
 ---
 
-### Title: Fair Inference Through Semiparametric-Efficient Estimation Over Constraint-Specific Paths
+### Title: "Fair Inference Through Semiparametric-Efficient Estimation Over Constraint-Specific Paths"
 
-### Authors: [Nima Hejazi](https://statistics.berkeley.edu/~nhejazi), [Mark van der Laan](https://vanderlaan-lab.org)
+### Authors: [Nima S. Hejazi](https://statistics.berkeley.edu/~nhejazi) and [Mark J. van der Laan](https://vanderlaan-lab.org)
 
 ### Abstract
 
