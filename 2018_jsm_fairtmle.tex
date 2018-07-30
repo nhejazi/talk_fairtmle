@@ -49,7 +49,7 @@
   Constraint-Specific Paths}
 \subtitle{\scriptsize for \textit{New Developments in Nonparametric and
     Semiparametric Statistics},\\
-    Joint Statistical Meetings; Vancouver, BC, Canada, 02 Aug.~2018\\[-10pt]}
+    Joint Statistical Meetings; Vancouver, BC, Canada; 02 Aug.~2018\\[-10pt]}
 \author{\href{https://nimahejazi.org}{Nima S.~Hejazi}
        \\[-10pt]
        }
@@ -69,10 +69,10 @@
       {\tt \scriptsize \color{foreground} nimahejazi.org}
   \\[-4pt]
   \href{https://twitter.com/nshejazi}
-      {\tt \scriptsize \color{foreground} twitter/@nshejazi}
+      {\tt \scriptsize \color{foreground} Twitter: nshejazi}
   \\[-4pt]
   \href{https://github.com/nhejazi}
-      {\tt \scriptsize \color{foreground} github/nhejazi}
+      {\tt \scriptsize \color{foreground} GitHub: nhejazi}
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -110,16 +110,19 @@
 \begin{center}
 \begin{itemize}
   \itemsep12pt
-  \item Targeted Learning provides a framework for estimating complex parameters
-    in nonparametric (infinite-dimensional) statistical models.
+  \item Recent work suggests that the widespread use of machine learning
+    algorithms has had negative social and policy consequences.
+  \item The construction of ``fair'' machine learning algorithms is an active
+    area of diverse research.
+  \item We propose a general algorithm for constructing ``fair'' optimal
+    ensemble machine learning estimators via cross-validation.
+  \item We extend Targeted Learning provides a framework for estimating complex
+    parameters in nonparametric (infinite-dimensional) statistical models.
   \item Constraints may be imposed as functionals defined over the target
     parameter of interest.
   \item Estimating constrained parameters may be seen as iteratively minimizing
     a loss function along a \textit{constrained} path in the parameter space
     $\Psi$.
-  \item Optimal nonparametric estimates of parameters (and constituent parts
-    thereof) may be obtained with Super Learning (i.e., stacked regression,
-    ensemble models).
 \end{itemize}
 \end{center}
 
@@ -131,20 +134,23 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}[fragile,c]{Why Nonparametrics?}
+\begin{frame}[fragile,c]{Fairness is machine learning?}
 
 \begin{center}
-\begin{minipage}[c]{10.7cm}
+\begin{minipage}[c]{11.25cm}
 \begin{semiverbatim}
 \lstset{basicstyle=\normalsize}
-\begin{lstlisting}[linewidth=10.7cm]
-  Everyone believes in the normal law
-  of errors, the experimenters because
-  they think it is a mathematical theorem,
-  the mathematicians because they think
-  it is an experimental fact.
+\begin{lstlisting}[linewidth=11.25cm]
+  Another potential result: a more diverse
+  workplace. The software relies on data
+  to surface candidates from a wide variety
+  of places...free of human biases. But
+  software is not free of human influence.
+  Algorithms are written and maintained by
+  people...As a result...algorithms can
+  reinforce human prejudices.
 
-  -Henri Poincaré
+  -Miller (2015)
 \end{lstlisting}
 \end{semiverbatim}
 \end{minipage}
@@ -156,48 +162,75 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}[c]{Background, Data, Notation}
+\begin{frame}[c]{Addressing bias in a technical manner}
 
 \begin{center}
 \begin{itemize}
   \itemsep12pt
-  \item Data: $O = (W, X, Y)$, where $W$ is baseline covariates (e.g., sex,
-    height), $X$ is a sensitive characteristic, $Y$ an outcome of interest.
-  \item Consider $n$ i.i.d.~copies $O_1, \dots, O_n$ of $O \sim P_0 \in
+  \item The careless use of machine learning may induce \textit{unjustified}
+    bias.
+  \item Problematic discrimination by ML approaches leads to solutions with
+    \textit{practical irrelevance}.
+  \item Ill-considered discrimination by ML approaches leads to solutions that
+    are \textit{morally problematic}.
+  \item Two docrtines of discrimination:
+    \begin{enumerate}
+      \item Disparate treatment: formal or intentional
+      \item Disparate impact: unjustified or avoidable
+    \end{enumerate}
+\end{itemize}
+\end{center}
+
+\note{
+  Considering and treating bias using a technical approach is an important way
+  of dealing with the potential negative consequences of machine learning.
+}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[c]{Background, data, notation}
+
+\begin{center}
+\begin{itemize}
+  \itemsep12pt
+  \item An observational unit: $O = (W, X, Y)$, where $W$ is baseline
+    covariates, $X$ a sensitive characteristic, $Y$ an outcome of interest.
+  \item Consider $n$ i.i.d.~copies $O_1, \ldots, O_n$ of $O \sim P_0 \in
     \mathcal{M}$.
   \item Here, $\mathcal{M}$ is an infinite-dimensional statistical model (i.e.,
     indexed by an infinite-dimensional vector).
   \item We discuss the estimation of a target parameter $\psi : \mathcal{M}
-    \rightarrow \psi(\mathcal{M})$.
-  \item $$ \Psi(P) = \argmin_{\psi \in \Psi} \E_PL(\psi)$$
+    \rightarrow \mathbb{R}$, where
+    $$\Psi(P_0) = \argmin_{\psi \in \Psi} \E_{P_0}L(\psi)$$
 \end{itemize}
 \end{center}
 
 \note{
-  This is just the setup and all stuff that's been done already. We just need to
-  see this to get a feel for what's going to be happening with the derivation of
-  constraint-specific paths.
+  We just need to see this to get a feel for what's going to be happening with
+  the derivation of constraint-specific paths.
 }
 
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}[c]{Constrained Functional Parameters I}
+\begin{frame}[c]{Wait, where did the fairness go?}
 
 \begin{center}
 \begin{itemize}
   \itemsep12pt
-  \item Consider estimating $\Psi(P) = \E_P(Y \mid W, X)$ from $O = (W, X, Y)
-    \sim \mathcal{M}$, with loss $L_Y(\psi) = -(Y \cdot \text{log}(P(Y \mid X,
-    W)) + (1 - Y) \cdot \text{log}(1 - P(Y \mid X, W)))$.
-  \item Let $\Theta_{\psi}(P): \mathcal{M} \rightarrow \openr$ be a parameter
-    for each $\psi \in \Psi$. Further, let $\Theta_{\psi}(P)$ be pathwise
-    differentiable.
-  \item e.g., \textit{equalized odds}: $\Theta_{\psi}(P_0) = \sum_y
-    \{\E_{P_0}(L(\psi)(O) \mid X = 1, Y = y) - \E_{P_0}(L(\psi)(O) \mid X = 0,
-    Y = y)\}^2$
-  \item $$ \Psi(P) = \argmin_{\psi \in \Psi, \Theta_{\psi}(P) = 0} \E_PL(\psi)$$
+  \item Goal: estimate $\Psi(P_0) = \E_{P_0}(Y \mid X, W)$.
+  \item Let $Y \in \{0, 1\}$ and use neg.~log-likelihood loss:
+    $$L(\psi) = -(Y \log(P(Y \mid X, W)) + (1 - Y) \log(1 - P(Y \mid X, W)))$$
+  \item Fairness criterion --- \textit{equalized odds}:
+    $$\begin{aligned}
+      \Theta_{\psi}(P_0) = \sum_y \{&\E_{P_0}(L(\psi)(O) \mid X = 1, Y = y) \\ -
+      &\E_{P_0}(L(\psi)(O) \mid X = 0, Y = y)\}^2
+    \end{aligned}$$
+  \item Let $\Theta_{\psi}(P): \mathcal{M} \rightarrow \openr$ be a pathwise
+    differentiable \textit{functional} for each $\psi \in \Psi$.
 \end{itemize}
 \end{center}
 
@@ -208,11 +241,39 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}[c]{Constrained Functional Parameters II}
+\begin{frame}[c]{Just a few fairness criteria}
+
+\begin{center}
+\begin{itemize}
+  \itemsep8pt
+  \item Let $C: (X, W) \to Y \in \{0, 1\}$ be a classifier; $X \in \{a, b\}$.
+  \item Demographic parity: $P_{(X = a)}(C = 1) = P_{(X = b)}(C = 1)$
+  \item Accuracy parity: $P_{(X = a)}(C = Y) = P_{(X = b)}(C = Y)$
+  \item True positive parity: $P_{(X = a)}(C = 1 \mid Y = 1) = P_{(X = b)}(C =
+    1 \mid Y = 1)$
+  \item False positive parity: $P_{(X = a)}(C = 1 \mid Y = 0) = P_{(X = b)}(C =
+    1 \mid Y = 0)$
+  \item Positive predictive value parity: $P_{(X = a)}(Y = 1 \mid C = 1) =
+    P_{(X = b)}(Y = 1 \mid C = 1)$
+  \item Negative predictive value parity: $P_{(X = a)}(Y = 1 \mid C = 0) =
+    P_{(X = b)}(Y = 1 \mid C = 0)$
+\end{itemize}
+\end{center}
+
+\note{
+  It's a jungle out there
+}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[c]{Constrained functional parameters}
 
 \begin{center}
 \begin{itemize}
   \itemsep12pt
+  \item $$\Psi(P) = \argmin_{\psi \in \Psi, \Theta_{\psi}(P) = 0} \E_PL(\psi)$$
   \item We wish to estimate $\Psi^*(P)$, the projection of $\Psi(P)$ onto the
     subspace $\Psi^*(P) = \{\psi \in \Psi: \Theta_{\psi}(P) = 0\}$
     w.r.t.~loss-based dissimilarity: $d_{P}(\psi, \Psi(P)) = \E_PL(\psi) -
@@ -242,29 +303,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}[c]{Intuition for Super Learner I}
-
-\begin{center}
-\begin{itemize}
-  \itemsep12pt
-  \item For a random variable $O = (W,X,Y)$, let the oracle selector be a rule
-    that picks the algorithm with the lowest cross-validated risk under the true
-    probability distribution $P_0$.
-  \item Asymptotic results prove that in realistic scenarios (where none of the
-    algorithms represent the true relationship), the ``discrete Super Learner''
-    performs asymptotically as well as the oracle selector (given the algorithms
-    in the collection).
-\end{itemize}
-\end{center}
-
-\note{
-}
-
-\end{frame}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{frame}[c]{Super Learner for Constrained Parameters I}
+\begin{frame}[c]{Learning with constrained parameters}
 
 \begin{center}
 \begin{itemize}
@@ -295,7 +334,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}[c]{Super Learner for Constrained Parameters II}
+\begin{frame}[c]{Learning with constrained parameters}
 
 \begin{center}
 \begin{equation}
@@ -326,7 +365,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}[c]{Mappings with Constrained Super Learners}
+\begin{frame}[c]{Mappings with constrained learners}
 
 \begin{center}
 A straightforward approach to generating estimators of the constrained parameter
@@ -353,7 +392,7 @@ would be to simply generate a mapping according to the following simple process:
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}[c]{Constraint-specific Paths I}
+\begin{frame}[c]{Constraint-specific paths}
 
 \begin{center}
 
@@ -372,6 +411,7 @@ $\lambda = 0$, which we refer to as the \textit{constraint-specific path}.
 We then leverage this construction to map an initial estimator of the
 unconstrained parameter $\psi_0$ into its corresponding constrained version
 $\psi_0^*$.
+
 \end{center}
 
 \note{
@@ -381,7 +421,7 @@ $\psi_0^*$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}[c]{Constraint-specific Paths II}
+\begin{frame}[c]{Constraint-specific paths}
 
 \begin{center}
 \underline{The fine print}:
@@ -428,7 +468,7 @@ computing it, given above. Finally, letting $\psi_0^* = \argmin_{\psi \in {\bf
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}[c]{Future Work}
+\begin{frame}[c]{Future work}
 
 \begin{center}
 \begin{itemize}
@@ -504,7 +544,7 @@ Mark J.~van der Laan & \footnotesize \lolit University of California, Berkeley
 \vspace{10mm}
 
 \underline{Funding source}:\\
-National Library of Medicine (of NIH): T32LM012417
+National Library of Medicine (of NIH): T32-LM012417--02
 
 \note{
 }
@@ -516,11 +556,8 @@ National Library of Medicine (of NIH): T32LM012417
 \begin{frame}[c]{Thank you.}
 
 \Large
-Slides: \href{https://goo.gl/1bGsgE}{goo.gl/xZ5qPa} \quad
-\includegraphics[height=5mm]{Figs/cc-zero.png}
-
-\vspace{3mm}
-Notes: \href{https://goo.gl/ic1FpG}{goo.gl/qc7JPH}
+Slides: \href{https://bit.ly/jsm_fairtmle_2018}{bit.ly/jsm\_fairtmle\_2018}
+\quad \includegraphics[height=5mm]{Figs/cc-zero.png}
 
 \vspace{3mm}
 \href{https://www.stat.berkeley.edu/~nhejazi}{\tt
@@ -530,10 +567,10 @@ Notes: \href{https://goo.gl/ic1FpG}{goo.gl/qc7JPH}
 \href{http://nimahejazi.org}{\tt nimahejazi.org}
 
 \vspace{3mm}
-\href{https://twitter.com/nshejazi}{\tt twitter/@nshejazi}
+\href{https://twitter.com/nshejazi}{\tt Twitter: nshejazi}
 
 \vspace{3mm}
-\href{https://github.com/nhejazi}{\tt github/nhejazi}
+\href{https://github.com/nhejazi}{\tt GitHub: nhejazi}
 
 \note{Here's where you can find me, as well as the slides for this talk.}
 
