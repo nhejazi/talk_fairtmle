@@ -109,12 +109,10 @@
   \itemsep12pt
   \item Recent work suggests that the widespread use of machine learning
     algorithms has had negative social and policy consequences.
-  \item The construction of ``fair'' machine learning algorithms is an active
-    area of diverse research.
+  \item The widespread use of machine learning in policy issues violates human
+    intuitions of bias.
   \item We propose a general algorithm for constructing ``fair'' optimal
-    ensemble machine learning estimators via cross-validation.
-  \item We extend Targeted Learning provides a framework for estimating complex
-    parameters in nonparametric (infinite-dimensional) statistical models.
+    ensemble ML estimators via cross-validation.
   \item Constraints may be imposed as functionals defined over the target
     parameter of interest.
   \item Estimating constrained parameters may be seen as iteratively minimizing
@@ -287,15 +285,16 @@
 \begin{itemize}
   \itemsep12pt
   \item Estimate target parameter under a constraint:
-    $$\Psi(P) = \argmin_{\psi \in \Psi, \Theta_{\psi}(P) = 0} \E_PL(\psi)$$
-  \item Goal: estimate $\Psi^*(P)$, the projection of $\Psi(P)$ onto the
-    subspace $\Psi^*(P) = \{\psi \in \Psi: \Theta_{\psi}(P) = 0\}$:
-    $$(\Psi^*, \lambda) = (\Psi^*(P), \Lambda(P)) \equiv \argmin_{\psi \in \Psi,
-      \lambda} \E_PL(\psi) + \lambda \Theta_{\psi}(P).$$
-  \item \textit{Lemma}: If $\widetilde{\Psi}(P) = (\Psi^*(P), \Lambda(P))$ is
-    the minimizer of the Lagrange multiplier penalized loss, then
-    $$\Psi^*(P) = \argmin_{\psi \in {\bf \Psi}, \Theta_{\psi}(P) = 0}
-      \E_{P}L(\psi).$$
+    $$\Psi(P_0) = \argmin_{\psi \in \Psi, \Theta_{\psi}(P_0) = 0}
+      \E_{P_0}L(\psi)$$
+  \item Goal: estimate $\Psi^*(P_0)$, the projection of $\Psi(P_0)$ onto the
+    subspace $\Psi^*(P_0) = \{\psi \in \Psi: \Theta_{\psi}(P_0) = 0\}$:
+    $$(\Psi^*, \lambda) = (\Psi^*(P_0), \Lambda(P_0)) \equiv \argmin_{\psi \in
+      \Psi, \lambda} \E_{P_0}L(\psi) + \lambda \Theta_{\psi}(P_0).$$
+  \item \textit{Lemma}: If $\widetilde{\Psi}(P_0) = (\Psi^*(P_0), \Lambda(P_0))$
+    is the minimizer of the Lagrange multiplier penalized loss, then
+    $$\Psi^*(P_0) = \argmin_{\psi \in \Psi, \Theta_{\psi}(P_0) = 0}
+      \E_{P_0}L(\psi).$$
 \end{itemize}
 \end{center}
 
@@ -389,6 +388,7 @@ would be to simply generate a mapping according to the following simple process:
 
 \begin{center}
 \begin{itemize}
+  \itemsep12pt
   \item Consider $\psi_{0, \lambda} = \argmax_{\psi \in \Psi} \E_{P_0}L(\psi) +
     \lambda \Theta_0(\psi)$.
   \item $\{\psi_{0, \lambda} : \lambda\}$ represents a path in the parameter
@@ -412,17 +412,15 @@ would be to simply generate a mapping according to the following simple process:
 
 \begin{center}
 \begin{itemize}
-  \itemsep12pt
+  \itemsep14pt
   \item Further generalization of constraint-specific paths: the solution path
     $\{\psi_{0, \lambda}: \lambda\}$ in the parameter space $\Psi$ through
     $\psi_0$ at $\lambda = 0$.
   \item Further develop relation between constraint-specific paths and universal
-    least favorable submodels (Efron's least favorable families).
+    least favorable submodels.
   \item Integration of the approach of constraint-specific paths with classical
     classical targeted maximum likelihood estimation --- in particular, what, if
     any, are the implications for inference?
-  \item Try our approach out with practical constraint-type problems (e.g.,
-    fairness via equalized odds, physician knowledge in prediction).
 \end{itemize}
 \end{center}
 
@@ -438,16 +436,17 @@ would be to simply generate a mapping according to the following simple process:
 \begin{center}
 \begin{itemize}
   \itemsep12pt
-  \item Targeted Learning provides a framework for estimating complex parameters
-    in nonparametric (infinite-dimensional) statistical models.
+  \item Recent work suggests that the widespread use of machine learning
+    algorithms has had negative social and policy consequences.
+  \item The widespread use of machine learning in policy issues violates human
+    intuitions of bias.
+  \item We propose a general algorithm for constructing ``fair'' optimal
+    ensemble ML estimators via cross-validation.
   \item Constraints may be imposed as functionals defined over the target
     parameter of interest.
   \item Estimating constrained parameters may be seen as iteratively minimizing
     a loss function along a \textit{constrained} path in the parameter space
     $\Psi$.
-  \item Optimal nonparametric estimates of parameters (and constituent parts
-    thereof) may be obtained with Super Learning (i.e., stacked regression,
-    ensemble models).
 \end{itemize}
 \end{center}
 
@@ -479,12 +478,14 @@ would be to simply generate a mapping according to the following simple process:
 
 \begin{tabular}{@{}l@{\hspace{1.5cm}}l@{}}
 Mark J.~van der Laan & \footnotesize \lolit University of California, Berkeley
+\\
+David C.~Benkeser & \footnotesize \lolit Emory University
 \end{tabular}
 
 \vspace{10mm}
 
 \underline{Funding source}:\\
-National Library of Medicine (of NIH): T32-LM012417--02
+National Institutes of Health: T32-LM012417--02
 
 \note{
 }
